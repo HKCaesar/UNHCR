@@ -114,7 +114,7 @@ def get_bands(path, row, date: str, bands): # dates in "yyyymmdd" format and ban
             blob = bucket.blob(i)
             filename = get_filename_from_blobname(i)
             blob.download_to_filename(download_dir / filename)
-            logging.info('\tPathRow: {}{} \tDate: {} \tDownloaded to: {}'.format(path, row, date, download_dir))
+            logging.info('PathRow: {}{} \tDate: {} \tDownloaded to: {}'.format(path, row, date, download_dir))
         print("Done")
     else:
         print("No files to download")
