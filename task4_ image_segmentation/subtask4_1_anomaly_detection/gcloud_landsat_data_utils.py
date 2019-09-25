@@ -12,6 +12,7 @@ import os
 import re
 import logging
 from pathlib import Path
+import argparse
 
 get_dir = lambda n : n if len(n) == 3 else '0'*(3 - len(n)%3)+n
 
@@ -82,8 +83,8 @@ def get_blob_names(prefix, path, row, date, bands):
 def get_filename_from_blobname(blob_name):
     return blob_name.split('/')[-1]
 
-def create_download_directory(path, row, date):
-    pathrow_dir = Path("{}{}".format(path, row))
+def create_download_directory(path, row, date, download_dir):
+    pathrow_dir = download_dir / Path("{}{}".format(path, row))
     if not os.path.isdir(pathrow_dir):
         os.makedirs(pathrow_dir)
         os.makedirs(pathrow_dir / date)
@@ -95,7 +96,7 @@ def create_download_directory(path, row, date):
         logging.info("Download directories aready present. Skipping")
     return pathrow_dir / date
 
-def get_bands(path, row, date: str, bands): # dates in "yyyymmdd" format and bands as an iterable
+def get_bands(path, row, date: str, bands, download_dir = Path('')): # dates in "yyyymmdd" format and bands as an iterable
     global get_dir
     logging.getLogger().setLevel(logging.INFO)
     path = get_dir(path)
@@ -106,7 +107,11 @@ def get_bands(path, row, date: str, bands): # dates in "yyyymmdd" format and ban
     if len(blob_names) != 0:
         logging.info("Found {} blobs".format(len(blob_names)))
         logging.info('Creating download directories.')
-        download_dir = create_download_directory(path, row, date)
+        try:
+            os.makedirs(download_dir)
+        except:
+            pass
+        download_dir = create_download_directory(path, row, date, download_dir)
         storage_client = storage.Client()
         bucket = storage_client.get_bucket('gcp-public-data-landsat')
         logging.info("Beginning Downloads")
@@ -122,3 +127,22 @@ def get_bands(path, row, date: str, bands): # dates in "yyyymmdd" format and ban
 # path, row =  get_pathrow_from_latlon(4.1761213,45.0235419)
 # get_all_dates(path, row)
 #get_bands('164', '57', '20141005', [1, 2, 3])
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Download Landsat images")
+    parser.add_argument("-d", metavar = "--downloadDir", type=str,
+                        help="Directory to save downloaded files to")
+    parser.add_argument("-p", metavar="--path", type=str,
+                        help="Path of PathRow to get the image")
+    parser.add_argument("-r", metavar="--row", type=str,
+                        help="Row of PathRow to get image")
+    parser.add_argument("-dt", metavar="--date", type=str,
+                        help="Date to download images. Format: YYYYMMDD")
+    parser.add_argument("-b", metavar="--bands", type=str,
+                        help="List of band numbers to download. Sample: 1,2,3,4")
+    args = parser.parse_args()
+    
+    bands = [int(i) for i in args.b.split(',')]
+    download_dir = Path(args.d)
+    get_bands(args.p, args.r, args.dt, bands, download_dir)
+    
