@@ -13,6 +13,7 @@ import re
 import logging
 from pathlib import Path
 import argparse
+import sys
 
 get_dir = lambda n : n if len(n) == 3 else '0'*(3 - len(n)%3)+n
 
@@ -133,14 +134,25 @@ if __name__ == '__main__':
     parser.add_argument("-d", metavar = "--downloadDir", type=str,
                         help="Directory to save downloaded files to")
     parser.add_argument("-p", metavar="--path", type=str,
-                        help="Path of PathRow to get the image")
+                        help="Path of PathRow to get the image", nargs="?")
     parser.add_argument("-r", metavar="--row", type=str,
-                        help="Row of PathRow to get image")
+                        help="Row of PathRow to get image", nargs="?")
     parser.add_argument("-dt", metavar="--date", type=str,
                         help="Date to download images. Format: YYYYMMDD")
     parser.add_argument("-b", metavar="--bands", type=str,
                         help="List of band numbers to download. Sample: 1,2,3,4")
+    parser.add_argument("-lat", metavar="--latitude", type=float,
+                        help="Latitude of image to downlod", nargs="?")
+    parser.add_argument("-lon", metavar="--longitude", type=float,
+                        help="Longitude of image to downlod", nargs="?")
+
     args = parser.parse_args()
+    if args.lat != None and args.lon != None:
+        args.p, args.r = get_pathrow_from_latlon(args.lat, args.lon)
+        args.p, args.r = str(args.p), str(args.r)
+    elif args.p == None or args.r == None:
+        print("Please enter either a PathRow pair or LatLon pair")
+        sys.exit(1)
     
     bands = [int(i) for i in args.b.split(',')]
     download_dir = Path(args.d)
