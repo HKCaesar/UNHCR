@@ -17,6 +17,8 @@ import sys
 
 get_dir = lambda n : n if len(n) == 3 else '0'*(3 - len(n)%3)+n
 
+#get_date = lambda dd, mm, yyyy: 
+
 def list_blobs_with_prefix(bucket_name: str, prefix: str, delimiter=None):
     """
     Get the list of all the object in a bucket with a given prefix
@@ -138,7 +140,7 @@ if __name__ == '__main__':
     parser.add_argument("-r", metavar="--row", type=str,
                         help="Row of PathRow to get image", nargs="?")
     parser.add_argument("-dt", metavar="--date", type=str,
-                        help="Date to download images. Format: YYYYMMDD")
+                        help="Date to download images. Format: YYYYMMDD. Set this as -1 to get the list of all the dates which have images for a PathRow")
     parser.add_argument("-b", metavar="--bands", type=str,
                         help="List of band numbers to download. Sample: 1,2,3,4")
     parser.add_argument("-lat", metavar="--latitude", type=float,
@@ -154,6 +156,11 @@ if __name__ == '__main__':
         print("Please enter either a PathRow pair or LatLon pair")
         sys.exit(1)
     
+    if args.dt == '-1':
+        print("The PathRow {}{} has images on dates:".format(args.p, args.r))
+        for date in get_all_dates(args.p, args.r):
+            print('{}{:02d}{:02d}'.format(date.year, date.month, date.day))
+        sys.exit(1)
     bands = [int(i) for i in args.b.split(',')]
     download_dir = Path(args.d)
     get_bands(args.p, args.r, args.dt, bands, download_dir)
