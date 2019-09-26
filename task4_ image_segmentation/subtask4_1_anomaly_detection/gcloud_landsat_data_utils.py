@@ -157,7 +157,6 @@ if __name__ == '__main__':
         sys.exit(1)
     
     if args.dt == '-1':
-        print("The PathRow {}{} has images on dates:".format(args.p, args.r))
         for date in get_all_dates(args.p, args.r):
             print('{}{:02d}{:02d}'.format(date.year, date.month, date.day))
         sys.exit(1)
